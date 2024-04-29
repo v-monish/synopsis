@@ -1,19 +1,34 @@
-from typing import List
-from fastapi import FastAPI, File, UploadFile, HTTPException, Request
+from typing import Dict, List, Union
+from fastapi import FastAPI, File, UploadFile, HTTPException, Query
 from fastapi.responses import FileResponse
 from pdf_to_summary import process_pdf_files, generate_summary
 from translate_to_arabic import translate_to_arabic
 from text_pdf import create_pdf_from_json
 import positive_AFI
+from html_pdf import generatePdfFromHtmlTemplateString, injectDataIntoAfiPositivesTemplate
 
-from weasyprint import HTML
+from fastapi.middleware.cors import CORSMiddleware
 
 
 app = FastAPI()
 
-@app.post("/pdf_to_summary")
+origins = [
+    "http://localhost:8080",
+    "http://localhost:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.post("/pdf/summary")
 async def pdf_to_summary(files: List[UploadFile] = File(...)):
     try:
+        print("Files", files)
         files_content = [await file.read() for file in files]
         extracted_texts = await process_pdf_files(files_content)
         # summaries = generate_summary(extracted_texts)
@@ -25,7 +40,7 @@ async def pdf_to_summary(files: List[UploadFile] = File(...)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/summary-to-arabic")
+@app.post("/summary/arabic")
 async def summary_to_arabic(summary: list[str]):
     try:
         translated_summary = translate_to_arabic(summary)
@@ -33,7 +48,7 @@ async def summary_to_arabic(summary: list[str]):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/text-to-pdf")
+@app.post("/report/pdf")
 async def text_to_pdf(text: list[dict]):
     try:
         output_pdf = "/home/ws/Projects/LLM/synopsis/output.pdf"
@@ -43,53 +58,18 @@ async def text_to_pdf(text: list[dict]):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/pdf")
-async def generate_pdf(request: Request):
-    # Sample data for demonstration
-    data = {
-        "name": request.query_params.get("name", "World"),
-        "items": ["Apple", "Banana", "Orange"],
-        "show_items": True,
-        "message": "Welcome!" if request.query_params.get("name") else "Please provide a name."
-    }
 
-    # Sample HTML template with dynamic content and examples
-    html_content = """
-    <html>
-        <body>
-            <h1>Hello, {name}!</h1>
-            
-            <!-- Example of a for loop to iterate over items -->
-            <h2>Items:</h2>
-            <ul>
-                {% for item in items %}
-                <li>{{ item }}</li>
-                {% endfor %}
-            </ul>
-            
-            <!-- Example of an if-else statement to conditionally show items -->
-            {% if show_items %}
-            <p>Showing items:</p>
-            <ul>
-                {% for item in items %}
-                <li>{{ item }}</li>
-                {% endfor %}
-            </ul>
-            {% else %}
-            <p>Items are not shown.</p>
-            {% endif %}
-            
-            <!-- Example of injecting a variable into a message -->
-            <p>{{ message }}</p>
-        </body>
-    </html>
-    """.format(**data)
 
-    # Generate PDF from HTML content
-    pdf = HTML(string=html_content).write_pdf()
+@app.get("/positives-afi/pdf")
+async def generate_pdf_from_template(template_data: List[Dict[str, Union[str, List[str]]]], isDownloadable: bool = Query(True, description="Set to false if the PDF should be displayed in the browser instead of downloaded")):
+    # data = template_data.get("data")
+    
+    templateStringWithInjectedData = injectDataIntoAfiPositivesTemplate(template_data)
+    
+    # Pass the isDownloadable parameter to generatePdfFromHtmlTemplateString
+    options = {"isDownloadable": isDownloadable}
+    return await generatePdfFromHtmlTemplateString(templateStringWithInjectedData, options)
 
-    # Return the generated PDF as a downloadable file
-    return FileResponse(pdf, filename="output.pdf", media_type="application/pdf")
 
 
 if __name__ == "__main__":
