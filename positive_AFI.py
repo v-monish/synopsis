@@ -56,7 +56,7 @@ def extract_AFI(text):
             end_index = None
             break
 
-    return split_clean(sections[0])
+    return split_clean("" if len(sections) <= 0 else sections[0])
 
 def extract_positives(text):
     lines = text.split("\n")
@@ -75,8 +75,10 @@ def extract_positives(text):
                 start_index = None
                 end_index = None
             break
+        
+    # print("Im  before split clean", sections, { "helllo": "replaced" if len(sections) <= 0 else sections[0] })
 
-    return split_clean(sections[0])
+    return split_clean("" if len(sections) <= 0 else sections[0])
 
 def foreach_df(t, func):
     for t1 in t:
@@ -110,18 +112,27 @@ def create_temp_file(byte_list):
 async def process_positives_AFI(files_content, full_text, summaries):
     for idx, file_content in enumerate(files_content):
         try:
+            # print("Index in postivies", idx)
             # file_content = await file.read()
             temp_file = create_temp_file(file_content)
             pdf = camelot.read_pdf(temp_file, pages="all")
             os.remove(temp_file)
             # full_text = get_full_text(file)
+            
+            print("Full text length", len(full_text))
+            
             positives = find_positives(pdf, full_text[idx])
+            print("A", idx, positives)
             afi = find_AFI(pdf, full_text[idx])
+            print("B", idx, afi)
+
             # results[file] = {'positives': positives, 'areas_for_improvement': afi}
             summaries[idx] = {"summary": summaries[idx], "positives":positives, "afi":afi}
+            print("C", idx)
         except Exception as e:
+            print("File content Error", idx, len(full_text))
             summaries[idx] = {'error': str(e)}
-    
+    print("Final Summaries", summaries)
     return summaries
 
 

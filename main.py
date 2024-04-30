@@ -31,10 +31,18 @@ async def pdf_to_summary(files: List[UploadFile] = File(...)):
         print("Files", files)
         files_content = [await file.read() for file in files]
         extracted_texts = await process_pdf_files(files_content)
+        
+        
         # summaries = generate_summary(extracted_texts)
-        summaries = ["summary" for text in extracted_texts]
+        summaries = ["summary" for _ in extracted_texts]
+        # print("Extracted text content summaries: ", summaries)
         summaries = await positive_AFI.process_positives_AFI(files_content, extracted_texts, summaries)
         
+        arabicSummaries = translate_to_arabic([summary['summary'] for summary in summaries])
+                
+        for i in range(len(summaries)):
+            summaries[i]['arabicSummary'] = arabicSummaries[i]
+            
         return summaries
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -60,12 +68,12 @@ async def text_to_pdf(text: list[dict]):
 
 
 
-@app.get("/positives-afi/pdf")
+@app.post("/positives-afi/pdf")
 async def generate_pdf_from_template(template_data: List[Dict[str, Union[str, List[str]]]], isDownloadable: bool = Query(True, description="Set to false if the PDF should be displayed in the browser instead of downloaded")):
     # data = template_data.get("data")
-    
+    # print("Temlpate Data", template_data)
     templateStringWithInjectedData = injectDataIntoAfiPositivesTemplate(template_data)
-    
+    # print("template injected", templateStringWithInjectedData)
     # Pass the isDownloadable parameter to generatePdfFromHtmlTemplateString
     options = {"isDownloadable": isDownloadable}
     return await generatePdfFromHtmlTemplateString(templateStringWithInjectedData, options)
