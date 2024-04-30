@@ -43,7 +43,7 @@ import sentencepiece as spm
 def translate_to_arabic(summary):
     ct_model_path = "Models/ct2_model"
     sp_model_path = "Models/flores200_sacrebleu_tokenizer_spm.model"
-    device = "cpu" 
+    device = "cuda" 
     sp = spm.SentencePieceProcessor()
     
     sp.load(sp_model_path)

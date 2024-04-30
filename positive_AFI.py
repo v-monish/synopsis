@@ -46,7 +46,7 @@ def extract_AFI(text):
     sections = []
 
     for i, line in enumerate(lines):
-        if "Areas on improvement1:" in line:
+        if "Areas on improvement:" in line:
             start_index = i + 1
         elif start_index is not None and re.match(r"^\s*\d", line):
             end_index = i
@@ -67,7 +67,7 @@ def extract_positives(text):
     for i, line in enumerate(lines):
         if "Positives:" in line:
             start_index = i + 1
-        elif "Areas on improvement1:" in line:
+        elif "Areas on improvement:" in line:
             end_index = i
             if start_index is not None and end_index is not None:
                 section = "\n".join(lines[start_index:end_index])
@@ -95,7 +95,9 @@ def find_AFI(t1, text):
 
 def find_positives(t1, text):
     areas = foreach_df(t1, find_positives_inner)
+    # print("areas", areas)
     if areas is None:
+        print("text", len(text))
         return extract_positives(text)
     return areas
 

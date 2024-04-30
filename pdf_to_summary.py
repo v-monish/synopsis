@@ -54,19 +54,22 @@ def remove_consecutive_short_lines(input_text: str, length: int) -> str:
 
 def generate_summary(extracted_text_list):
     summaries = []
+    llm = setup_llamacpp()
     for text in extracted_text_list:
-        summary = llm_response(text)
-        summaries.append(summary)
-    
+        # summary = llm_response(text)
+        response = llm.invoke({"text": text})
+        summaries.append(response)
+
+    del llm
     return summaries
 
 model_path = "Models/mistral-7b-instruct-v0.1.Q8_0.gguf"
 
-def llm_response(prompt):
-    llm = setup_llamacpp()
-    response = llm.invoke({"text": prompt})
-    del llm
-    return response
+# def llm_response(prompt):
+#     llm = setup_llamacpp()
+#     response = llm.invoke({"text": prompt})
+#     del llm
+#     return response
 
 def setup_llamacpp():
     template = prompt_template

@@ -96,13 +96,16 @@ def injectDataIntoAfiPositivesTemplate(data):
               .firstRow {
                 display: flex;
                 justify-content: space-between;
+                font-weight: bold;
               }
 
               .secondRow {
                 display: flex;
                 justify-content: space-between;
               }
-
+ .thirdRow > div {
+   font-weight: bold;
+ }
 
           .thirdRow > div, .firstRow > div, .secondRow > div {
                 display: inline-block;
@@ -124,6 +127,9 @@ def injectDataIntoAfiPositivesTemplate(data):
               .arabic{
               direction: rtl;
               }
+              .bold{
+                font-weight: bold;
+              }
             </style>
           </head>
 
@@ -138,7 +144,7 @@ def injectDataIntoAfiPositivesTemplate(data):
                     </div>
                   </td>
                 </tr>
-                <tr>
+                <tr class="bold">
                   <td colspan="3">
                     <div class="secondRow">
                       <div>Aspect</div>
@@ -149,9 +155,9 @@ def injectDataIntoAfiPositivesTemplate(data):
 
         '''
         
-    htmlTemplateForPositivesAndAfi+= f'''        <tr>
+    htmlTemplateForPositivesAndAfi+= f'''        <tr class="bold">
               <td>1. Students’ Academic Achievement</td>
-              <td>3</td>
+              <td>score</td>
               <td class="arabic">1لأكاديمي</td>
             </tr>
             <tr>
@@ -203,9 +209,9 @@ def injectDataIntoAfiPositivesTemplate(data):
                 </div>
               </td>
             </tr>
-            <tr>
-              <td>2. Students" Personal Development and Well-being</td>
-              <td style="text-align: center;">3</td>
+            <tr class="bold">
+              <td>2. Students Personal Development and Well-being</td>
+              <td style="text-align: center;">score</td>
               <td  class="arabic" >2التطورالشخص ي للطلبة ورعايتهم</td>
             </tr>
             <tr>
@@ -260,9 +266,9 @@ def injectDataIntoAfiPositivesTemplate(data):
                 </div>
               </td>
             </tr>
-            <tr>
+            <tr class="bold">
               <td>3. Teaching, Learning and Assessment</td>
-              <td style="text-align: center;">3</td>
+              <td style="text-align: center;">score</td>
               <td class="arabic">3التعليم والتعلم والتقويم</td>
             </tr>
             <tr>
@@ -315,9 +321,9 @@ def injectDataIntoAfiPositivesTemplate(data):
                 </div>
               </td>
             </tr>
-            <tr>
+            <tr class="bold">
               <td>4. Leadership, Management, and Governance</td>
-              <td style="text-align: center;">3</td>
+              <td style="text-align: center;">score</td>
               <td class="arabic">4القيادة والإدارة والحوكمة</td>
             </tr>
             <tr>
@@ -335,7 +341,6 @@ def injectDataIntoAfiPositivesTemplate(data):
     '''
     for positive in data[3]["positives"]:
         htmlTemplateForPositivesAndAfi += f'''
-        
             <li >{positive}</li>
       
         '''
@@ -361,12 +366,9 @@ def injectDataIntoAfiPositivesTemplate(data):
 
     for afi in data[3]["afi"]:
         htmlTemplateForPositivesAndAfi += f'''
-      
             <li >{afi}</li>
 
         '''
-
-
     htmlTemplateForPositivesAndAfi += f''' 
           </ul>
                 </div>
@@ -380,10 +382,237 @@ def injectDataIntoAfiPositivesTemplate(data):
 
     return htmlTemplateForPositivesAndAfi
 
+def process_summary(summary):
+    sentences = summary.split('.\n\n')
+    
+    processed_sentences = []
+    
+    for sentence in sentences:
+        sentence = sentence.strip()
+        if sentence:
+            sentence = sentence.replace('.', '')
+            processed_sentences.append(f'<li>{sentence}</li>')
+        processed_summary = '\n'.join(processed_sentences)
+    return processed_summary
+
+def print_arabic(text):
+    return f'''<li class="arabic">{text}</li>'''
 
 
-# # PDF path to save
-# pdf_path = 'HTML_PDF.pdf'
-# # html_content = "pdf.html"
-# # Generate PDF
-# convert_html_to_pdf(htmlTemplateForPositivesAndAfi, pdf_path)
+def injectDataIntoReviewTemplatePDF(data):
+  # HTML content
+  html_content = '''
+  <!DOCTYPE html>
+  <html lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Review Report</title>
+  <!-- <link rel="stylesheet" href="index.css"> -->
+  <style>
+    *{
+  box-sizing: border-box;
+
+  }
+  body{
+      # font-family: Arial, Helvitica, sans-serif;
+      background: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem 1.2rem;
+  }
+
+  footer {
+      font-size: small;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      text-align: center;
+      background-color: #ffffff;
+      padding: 10px;
+      border-top: 1px solid #ebebeb;
+      margin-bottom: 1.5cm;
+    }
+
+    .main {
+      padding: 60px;
+      # border: 2px solid rgb(0, 0, 0);
+      width: 100%;
+      height: 100%;
+      background: #ffffff;    
+    }
+
+    .page-number {
+      float: left;
+    }
+
+    .date {
+      float: right;
+    }
+
+    .heading { 
+      text-align: center;
+    }
+
+    .points {
+      font-size: large;
+      text-align: justify;
+    }
+    # .arabic{
+    #   direction: rtl;
+      
+      
+    # }
+
+    .seperator{
+      margin-top: 1in;
+    }
+  </style>
+  </head>
+  <body>
+    <div class="main">
+      <header>
+          <h1 style="font-size: 200%; color: rgb(6, 14, 109); border-bottom:10px solid #ebebeb; padding-bottom: 25px;">Review Report</h1>
+      </header>
+      <main>
+          <h2 class="heading">Students’ Academic Achievement</h2>
+          <ul class="points">
+          '''
+
+
+  # formatted_list_items = split_and_format_list(english_summary1)
+  # for items in formatted_list_items:
+  #     for item in items:
+  #         html_content+=item
+
+  html_content += process_summary(data[0]["summary"])
+
+
+  html_content+=f'''
+          </ul>
+        
+          <h2 class="heading seperator">Students' Personal Development and Wellbeing</h2>
+          <ul class="points">
+            '''
+
+
+  # formatted_list_items = split_and_format_list(english_summary2)
+  # for items in formatted_list_items:
+  #     for item in items:
+  #        html_content+=item
+
+  html_content += process_summary(data[1]["summary"])
+
+  html_content+=f'''
+          </ul> 
+          <h2 class="heading seperator">Teaching, Learning and Assessment</h2>
+          <ul class="points"> 
+            '''
+
+  # formatted_list_items = split_and_format_list(english_summary3)
+  # for items in formatted_list_items:
+  #     for item in items:
+  #        html_content+=item
+
+  html_content += process_summary(data[2]["summary"])
+
+
+  html_content+=f'''
+          </ul>
+          <h2 class="heading seperator">Leadership, Management and Governance</h2>
+          <ul class="points">
+  '''
+
+
+  # formatted_list_items = split_and_format_list(english_summary4)
+  # for items in formatted_list_items:
+  #     for item in items:
+  #        html_content+=item
+
+  html_content += process_summary(data[3]["summary"])
+
+
+  html_content+=f'''
+          </ul>
+
+          <h2 class="heading seperator">
+          التحصيل الأكاديمي للطلاب
+          </h2>
+          <ul class="points"> 
+  '''
+
+
+  # formatted_list_items = split_and_format_list(arabic_summary1)
+  # for items in formatted_list_items:
+  #     for item in items:
+  #        html_content+=item
+
+
+  html_content += print_arabic(data[0]["arabicSummary"])
+
+
+  html_content+=f'''
+          </ul>
+          <h2 class="heading seperator">
+        التنمية الشخصية والرفاهية للطلاب
+          </h2>
+          <ul class="points"> 
+  '''
+  # formatted_list_items = split_and_format_list(arabic_summary2)
+  # for items in formatted_list_items:
+  #     for item in items:
+  #        html_content+=item
+
+  html_content += print_arabic(data[1]["arabicSummary"])
+
+
+  html_content+=f'''
+          </ul>
+          <h2 class="heading seperator">
+          التدريس والتعلم والتقييم
+          </h2>
+          <ul class="points"> 
+  '''
+
+  # formatted_list_items = split_and_format_list(arabic_summary3)
+  # for items in formatted_list_items:
+  #     for item in items:
+  #        html_content+=item
+
+  html_content += print_arabic(data[2]["arabicSummary"])
+
+
+
+  html_content+=f'''
+          </ul>
+          <h2 class="heading seperator">
+          القيادة والإدارة والحوكمة
+          </h2>
+          <ul class="points"> 
+  '''
+
+  # formatted_list_items = split_and_format_list(arabic_summary3)
+  # for items in formatted_list_items:
+  #     for item in items:
+  #         html_content+=item
+
+  html_content += print_arabic(data[3]["arabicSummary"])
+
+
+  html_content+=f'''
+      </ul>
+      </main>
+      <footer>
+          <span class="page-number">1</span>
+          <span class="date">27-28 April 2024</span>
+      </footer>
+    </div>
+  </body>
+  </html>
+  '''
+
+  return html_content
+
+
+
